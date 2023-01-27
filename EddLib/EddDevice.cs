@@ -129,23 +129,12 @@ namespace EddLib
             {
                 for (int x = 0; x < pixel_width; x++)
                 {
-
-                    int byte_index = y * (int)pixel_width / 8 + x / 8;
-                    int bit_index = x - x / 8;
+                    int byte_index = ((int)pixel_height - y - 1) * (int)pixel_width / 8 + x / 8;
+                    int bit_index = 7 - (x - (x / 8) * 8);
 
                     bool pixel_value = (bitmap_data[byte_index] & (1 << bit_index)) != 0;
 
-                    int col = x;
-                    int row = y / 8;
-
-                    if (pixel_value)
-                    {
-                        oled_fb[pixel_width * row + col] |= (byte)(1 << (y - row * 8));
-                    }
-                    else
-                    {
-                        oled_fb[pixel_width * row + col] &= (byte)~(1 << (y - row * 8));
-                    }
+                    OLED_SetPixel(ref oled_fb, x, y, pixel_value);
                 }
             }
 
@@ -158,6 +147,22 @@ namespace EddLib
 
             return result;
 
+        }
+
+
+        private void OLED_SetPixel(ref byte[] oled_fb, int x, int y, bool value)
+        {
+            int col = x;
+            int row = y / 8;
+
+            if (value)
+            {
+                oled_fb[128 * row + col] |= (byte)(1 << (y - row * 8));
+            }
+            else
+            {
+                oled_fb[128 * row + col] &= (byte)~(1 << (y - row * 8));
+            }
         }
 
         private void update_task()

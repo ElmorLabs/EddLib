@@ -79,8 +79,8 @@ namespace EddLib
             uint width_bytes = 0;
             uint pixels = 0;
 
-            //try
-            //{
+            try
+            {
                 using (BinaryReader br = new BinaryReader(ms))
                 {
                     br.BaseStream.Seek(10, SeekOrigin.Begin);
@@ -96,10 +96,10 @@ namespace EddLib
                     width_bytes = (pixel_width * pixel_depth) / 8;
                     pixels = pixel_height * pixel_width;
 
-                    /*if (pixel_width != 128 || pixel_height != 64 || pixel_depth != 1)
+                    if (pixel_width != 128 || pixel_height != 64 || pixel_depth != 1)
                     {
                         return false;
-                    }*/
+                    }
 
                     br.BaseStream.Seek(pixel_offset, SeekOrigin.Begin);
                     bitmap_data = new byte[pixel_width * pixel_height * pixel_depth / 8];
@@ -114,11 +114,11 @@ namespace EddLib
                         br.ReadBytes((int)padding_bytes);
                     }
                 }
-            /*}
+            }
             catch
             {
                 return false;
-            }*/
+            }
 
             if(bitmap_data == null)
             {

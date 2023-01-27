@@ -79,8 +79,8 @@ namespace EddLib
             uint width_bytes = 0;
             uint pixels = 0;
 
-            try
-            {
+            //try
+            //{
                 using (BinaryReader br = new BinaryReader(ms))
                 {
                     br.BaseStream.Seek(10, SeekOrigin.Begin);
@@ -96,10 +96,10 @@ namespace EddLib
                     width_bytes = (pixel_width * pixel_depth) / 8;
                     pixels = pixel_height * pixel_width;
 
-                    if (pixel_width != 128 || pixel_height != 64 || pixel_depth != 1)
+                    /*if (pixel_width != 128 || pixel_height != 64 || pixel_depth != 1)
                     {
                         return false;
-                    }
+                    }*/
 
                     br.BaseStream.Seek(pixel_offset, SeekOrigin.Begin);
                     bitmap_data = new byte[pixel_width * pixel_height * pixel_depth / 8];
@@ -107,20 +107,20 @@ namespace EddLib
                     for(int y = 0; y < pixel_height; y++)
                     {
                         // Copy row
-                        byte[] row = br.ReadBytes((int)width_bytes / 8);
+                        byte[] row = br.ReadBytes((int)width_bytes);
                         Array.Copy(row, 0, bitmap_data, y * width_bytes, width_bytes);
 
                         // Discard stride
                         br.ReadBytes((int)padding_bytes);
                     }
                 }
-            }
+            /*}
             catch
             {
                 return false;
-            }
+            }*/
 
-            if(bitmap_data != null)
+            if(bitmap_data == null)
             {
                 return false;
             }
@@ -130,7 +130,7 @@ namespace EddLib
                 for (int x = 0; x < pixel_width; x++)
                 {
 
-                    int byte_index = y * (int)pixel_width + x / 8;
+                    int byte_index = y * (int)pixel_width / 8 + x / 8;
                     int bit_index = x - x / 8;
 
                     bool pixel_value = (bitmap_data[byte_index] & (1 << bit_index)) != 0;
@@ -138,14 +138,13 @@ namespace EddLib
                     int col = x;
                     int row = y / 8;
 
-                    const int OLED_WIDTH = 128;
                     if (pixel_value)
                     {
-                        oled_fb[OLED_WIDTH * row + col + 2] |= (byte)(1 << (y - row * 8));
+                        oled_fb[pixel_width * row + col] |= (byte)(1 << (y - row * 8));
                     }
                     else
                     {
-                        oled_fb[OLED_WIDTH * row + col + 2] &= (byte)~(1 << (y - row * 8));
+                        oled_fb[pixel_width * row + col] &= (byte)~(1 << (y - row * 8));
                     }
                 }
             }
@@ -175,7 +174,7 @@ namespace EddLib
                 {
                     ButtonPressed?.Invoke(EddButton.Button2);
                 }
-                if ((button_status & (1 << 1)) != 0)
+                if ((button_status & (1 << 2)) != 0)
                 {
                     ButtonPressed?.Invoke(EddButton.Button3);
                 }

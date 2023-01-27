@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace EddLib
 {
@@ -22,7 +23,9 @@ namespace EddLib
     {
         public static List<EddDevice> GetAllDevices()
         {
-            return new List<EddDevice>();
+            List <EddDevice> devices = new List<EddDevice>();
+            devices.Add(new EddDevice(0));
+            return devices;
         }
 
     }

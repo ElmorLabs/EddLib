@@ -115,7 +115,7 @@ namespace EddLib
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
                 return false;
             }
@@ -147,6 +147,30 @@ namespace EddLib
 
             return result;
 
+        }
+
+
+        byte[] frameBuffer = new byte[128 * 64 / 8];
+        public void SetBufferPixel(int x, int y, bool value)
+        {
+            OLED_SetPixel(ref frameBuffer, x, y, value);
+        }
+
+        public void ClearBuffer()
+        {
+            frameBuffer = new byte[128 * 64 / 8];
+        }
+
+        public bool FlushBuffer()
+        {
+            GCHandle pinned_array = GCHandle.Alloc(frameBuffer, GCHandleType.Pinned);
+            IntPtr fb_ptr = pinned_array.AddrOfPinnedObject();
+
+            bool result = EddWrapper.edd_send_fb(DeviceIndex, fb_ptr);
+
+            pinned_array.Free();
+
+            return result;
         }
 
 

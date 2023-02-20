@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using static EddLib.EddWrapper;
 
 namespace EddLib
 {
@@ -15,39 +16,62 @@ namespace EddLib
             Button1, Button2, Button3
         };
 
-        public delegate void ButtonPressedEventHandler(EddButton button);
+        public delegate void ButtonPressedEventHandler(int device_index, List<EddButton> button_list);
         public event ButtonPressedEventHandler ButtonPressed;
 
         public delegate void DisconnectedEventHandler(int device_index);
         public event DisconnectedEventHandler Disconnected;
 
+        private void ButtonCallback(int index, int button_status)
+        {
+            List<EddButton> button_list = new List<EddButton>();
+
+            if ((button_status & 0x01) == 0)
+            {
+                button_list.Add(EddButton.Button1);
+            }
+            if ((button_status & 0x02) == 0)
+            {
+                button_list.Add(EddButton.Button2);
+            }
+            if ((button_status & 0x04) == 0)
+            {
+                button_list.Add(EddButton.Button3);
+            }
+
+            if (button_list.Count > 0)
+            {
+                ButtonPressed?.Invoke(index, button_list);
+            }
+        }
+
         public string Name { get; private set; }
         public Guid Guid { get; private set; }
 
         private int DeviceIndex;
-        private Thread task_thread;
+        //private Thread task_thread;
         private volatile bool run_task = false;
 
         public EddDevice(int index)
         {
             DeviceIndex = index;
-            task_thread = new Thread(new ThreadStart(update_task));
-            task_thread.IsBackground = true;
+            //task_thread = new Thread(new ThreadStart(update_task));
+            //task_thread.IsBackground = true;
         }
         
         public bool Init()
         {
             // Stop thread
-            if(run_task) {
+            /*if(run_task) {
                 run_task = false;
                 task_thread.Join(500);
-            }
+            }*/
 
-            bool result = EddWrapper.edd_init(DeviceIndex);
+            bool result = EddWrapper.edd_init(DeviceIndex, ButtonCallback);
 
             // Start thread
-            run_task = true;
-            task_thread.Start();
+            //run_task = true;
+            //task_thread.Start();
 
             return result;
         }
@@ -55,8 +79,8 @@ namespace EddLib
         public bool DeInit()
         {
             // Stop thread
-            run_task = false;
-            task_thread.Join(500);
+            //run_task = false;
+            //task_thread.Join(500);
 
             return EddWrapper.edd_deinit(DeviceIndex);
         }
@@ -78,6 +102,8 @@ namespace EddLib
             uint padding_bytes = 0;
             uint width_bytes = 0;
             uint pixels = 0;
+
+            
 
             try
             {
@@ -189,7 +215,7 @@ namespace EddLib
             }
         }
 
-        private void update_task()
+        /*private void update_task()
         {
             while(run_task)
             {
@@ -215,7 +241,7 @@ namespace EddLib
 
                 Thread.Sleep(20);
             }
-        }
+        }*/
 
     }
 }

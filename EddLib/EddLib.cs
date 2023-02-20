@@ -5,8 +5,11 @@ namespace EddLib
 {
     class EddWrapper
     {
+
+        public delegate void ButtonCallback(int index, int button_status);
+
         [DllImport("EddCppWrapper.dll", CallingConvention = CallingConvention.Cdecl)]
-        public extern static bool edd_init(int index);
+        public extern static bool edd_init(int index, ButtonCallback func);
 
         [DllImport("EddCppWrapper.dll", CallingConvention = CallingConvention.Cdecl)]
         public extern static int edd_get_button_status(int index);

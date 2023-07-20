@@ -26,9 +26,7 @@ namespace EddLib
     {
         public static List<EddDevice> GetAllDevices()
         {
-            List <EddDevice> devices = new List<EddDevice>();
-            devices.Add(new EddDevice(0));
-            return devices;
+            return new List<EddDevice>() { new EddDevice(0) };
         }
 
     }

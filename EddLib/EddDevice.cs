@@ -22,7 +22,7 @@ namespace EddLib
         public delegate void DisconnectedEventHandler(int device_index);
         public event DisconnectedEventHandler Disconnected;
 
-        private void ButtonCallback(int index, int button_status)
+        private void DeviceButtonCallback(int index, int button_status)
         {
             List<EddButton> button_list = new List<EddButton>();
 
@@ -49,39 +49,24 @@ namespace EddLib
         public Guid Guid { get; private set; }
 
         private int DeviceIndex;
-        //private Thread task_thread;
-        private volatile bool run_task = false;
 
         public EddDevice(int index)
         {
             DeviceIndex = index;
-            //task_thread = new Thread(new ThreadStart(update_task));
-            //task_thread.IsBackground = true;
         }
-        
+
+        private ButtonCallback _buttonCallback;
+
         public bool Init()
         {
-            // Stop thread
-            /*if(run_task) {
-                run_task = false;
-                task_thread.Join(500);
-            }*/
-
-            bool result = EddWrapper.edd_init(DeviceIndex, ButtonCallback);
-
-            // Start thread
-            //run_task = true;
-            //task_thread.Start();
+            _buttonCallback = new ButtonCallback(DeviceButtonCallback);
+            bool result = EddWrapper.edd_init(DeviceIndex, _buttonCallback);
 
             return result;
         }
 
         public bool DeInit()
         {
-            // Stop thread
-            //run_task = false;
-            //task_thread.Join(500);
-
             return EddWrapper.edd_deinit(DeviceIndex);
         }
 
@@ -102,8 +87,6 @@ namespace EddLib
             uint padding_bytes = 0;
             uint width_bytes = 0;
             uint pixels = 0;
-
-            
 
             try
             {
@@ -215,33 +198,6 @@ namespace EddLib
             }
         }
 
-        /*private void update_task()
-        {
-            while(run_task)
-            {
-                int button_status = EddWrapper.edd_get_button_status(DeviceIndex);
-
-                if ((button_status & (1 << 0)) != 0)
-                {
-                    ButtonPressed?.Invoke(EddButton.Button1);
-                }
-                if ((button_status & (1 << 1)) != 0)
-                {
-                    ButtonPressed?.Invoke(EddButton.Button2);
-                }
-                if ((button_status & (1 << 2)) != 0)
-                {
-                    ButtonPressed?.Invoke(EddButton.Button3);
-                }
-                
-                if(button_status != 0)
-                {
-                    Thread.Sleep(500);
-                }
-
-                Thread.Sleep(20);
-            }
-        }*/
 
     }
 }

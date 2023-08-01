@@ -28,6 +28,5 @@ namespace EddLib
         {
             return new List<EddDevice>() { new EddDevice(0) };
         }
-
     }
 }

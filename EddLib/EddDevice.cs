@@ -1,26 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using static EddLib.EddWrapper;
 
 namespace EddLib
 {
     public class EddDevice
     {
-
         public enum EddButton
         {
             Button1, Button2, Button3
         };
 
         public delegate void ButtonPressedEventHandler(int device_index, List<EddButton> button_list);
-        public event ButtonPressedEventHandler ButtonPressed;
+        public event ButtonPressedEventHandler? ButtonPressed;
 
         public delegate void DisconnectedEventHandler(int device_index);
-        public event DisconnectedEventHandler Disconnected;
+        public event DisconnectedEventHandler? Disconnected;
 
         private void DeviceButtonCallback(int index, int button_status)
         {
@@ -45,8 +44,8 @@ namespace EddLib
             }
         }
 
-        public string Name { get; private set; }
-        public Guid Guid { get; private set; }
+        public string Name { get; private set; } = string.Empty;
+        public Guid Guid { get; private set; } = Guid.Empty;
 
         private int DeviceIndex;
 
@@ -55,26 +54,39 @@ namespace EddLib
             DeviceIndex = index;
         }
 
-        private ButtonCallback _buttonCallback;
+        private EddWrapper.ButtonCallback? _buttonCallback;
 
         public bool Init()
         {
-            _buttonCallback = new ButtonCallback(DeviceButtonCallback);
-            bool result = EddWrapper.edd_init(DeviceIndex, _buttonCallback);
-
-            return result;
+            try
+            {
+                _buttonCallback = new EddWrapper.ButtonCallback(DeviceButtonCallback);
+                bool result = EddWrapper.edd_init(DeviceIndex, _buttonCallback);
+                return result;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public bool DeInit()
         {
-            return EddWrapper.edd_deinit(DeviceIndex);
+            try
+            {
+                return EddWrapper.edd_deinit(DeviceIndex);
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         // https://codereview.stackexchange.com/questions/175685/parsing-windows-bitmap-header-information
         public bool UpdateFramebuffer(MemoryStream ms)
         {
 
-            byte[] bitmap_data = null;
+            byte[]? bitmap_data = null;
             byte[] oled_fb = new byte[128 * 64 / 8];
 
             uint pixel_offset = 0;
@@ -150,12 +162,19 @@ namespace EddLib
             GCHandle pinned_array = GCHandle.Alloc(oled_fb, GCHandleType.Pinned);
             IntPtr fb_ptr = pinned_array.AddrOfPinnedObject();
 
-            bool result = EddWrapper.edd_send_fb(DeviceIndex, fb_ptr);
-
-            pinned_array.Free();
-
-            return result;
-
+            try
+            {
+                bool result = EddWrapper.edd_send_fb(DeviceIndex, fb_ptr);
+                return result;
+            }
+            catch
+            {
+                return false;
+            }
+            finally
+            {
+                pinned_array.Free();
+            }
         }
 
 
@@ -175,11 +194,19 @@ namespace EddLib
             GCHandle pinned_array = GCHandle.Alloc(frameBuffer, GCHandleType.Pinned);
             IntPtr fb_ptr = pinned_array.AddrOfPinnedObject();
 
-            bool result = EddWrapper.edd_send_fb(DeviceIndex, fb_ptr);
-
-            pinned_array.Free();
-
-            return result;
+            try
+            {
+                bool result = EddWrapper.edd_send_fb(DeviceIndex, fb_ptr);
+                return result;
+            }
+            catch
+            {
+                return false;
+            }
+            finally
+            {
+                pinned_array.Free();
+            }
         }
 
 
@@ -197,7 +224,5 @@ namespace EddLib
                 oled_fb[128 * row + col] &= (byte)~(1 << (y - row * 8));
             }
         }
-
-
     }
 }
